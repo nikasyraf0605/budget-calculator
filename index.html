@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Calculation Viewer</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 420px; width: 100%; }
+        h2 { margin-top: 0; color: #1a252c; font-size: 1.4em; border-bottom: 2px solid #eef2f5; padding-bottom: 10px; }
+        .row { display: flex; justify-content: space-between; margin: 12px 0; color: #4a5568; }
+        .result { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e2e8f0; display: flex; justify-content: space-between; font-size: 1.25em; font-weight: bold; color: #0f172a; }
+        .badge { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 id="title">Calculation Breakdown</h2>
+        <div id="details"></div>
+        <div class="result" id="total-row"></div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+        const detailsContainer = document.getElementById('details');
+        const totalContainer = document.getElementById('total-row');
+        const titleContainer = document.getElementById('title');
+
+        if (type === 'sum') {
+            titleContainer.innerText = 'Actual Spent Breakdown';
+            const itemsParam = params.get('items') || '';
+            const items = itemsParam.split(',').map(Number);
+            const total = items.reduce((acc, curr) => acc + curr, 0);
+
+            let html = '';
+            items.forEach((item, index) => {
+                html += `<div class="row"><span>Item ${index + 1}</span><span>RM${item.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>`;
+            });
+            detailsContainer.innerHTML = html;
+            totalContainer.innerHTML = `<span>Total Spent</span><span class="badge">RM ${total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+
+        } else if (type === 'balance') {
+            titleContainer.innerText = 'Balance Calculation';
+            const budget = Number(params.get('budget')) || 0;
+            const spent = Number(params.get('spent')) || 0;
+            const balance = budget - spent;
+
+            detailsContainer.innerHTML = `
+                <div class="row"><span>Budgeted (A)</span><span>RM ${budget.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>
+                <div class="row"><span>Actual Spent (B)</span><span>RM ${spent.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>
+            `;
+            totalContainer.innerHTML = `<span>Balance (A - B)</span><span class="badge">RM ${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+
+        } else {
+            titleContainer.innerText = 'Invalid Link';
+            detailsContainer.innerHTML = '<p>No valid calculation parameters found in this URL.</p>';
+        }
+    </script>
+</body>
+</html>
